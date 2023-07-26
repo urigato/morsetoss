@@ -282,7 +282,7 @@ const Home: NextPage = () => {
                       free.
                     </div>
                     <button
-                      onClick={() => signIn("google")}
+                      onClick={() => signIn()}
                       className="bg-gray-200 text-black font-semibold py-3 px-6 rounded-2xl flex items-center space-x-2"
                     >
                       <Image
