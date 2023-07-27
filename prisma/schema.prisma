@@ -46,6 +46,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   rooms         Room[]
+  morse         Morse[]
   purchases     Purchase[]
 }
 
@@ -57,6 +58,7 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// 룸
 model Room {
   id          String   @id @default(cuid())
   replicateId String
@@ -71,6 +73,7 @@ model Room {
   @@unique([replicateId, userId])
 }
 
+// 구매
 model Purchase {
   id           String   @id @default(cuid())
   userId       String
@@ -78,4 +81,19 @@ model Purchase {
   creditAmount Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+// 번역
+model Morse {
+  id          String   @id @default(cuid())
+  replicateId String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inputPram   String
+  output      String
+  prompt      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([replicateId, userId])
 }

@@ -10,7 +10,7 @@ export default function Header({
 }) {
   return (
     <header className="flex flex-col xs:flex-row justify-between items-center w-full mt-3 border-b pb-7 sm:px-4 px-2 border-gray-500 gap-2">
-      <Link href="/dream" className="flex space-x-2">
+      <Link href="/" className="flex space-x-2">
         <Image
           alt="header text"
           src="/bed.svg"
@@ -19,17 +19,17 @@ export default function Header({
           height={24}
         />
         <h1 className="sm:text-3xl text-xl font-bold ml-2 tracking-tight">
-          roomGPT.io
+          Morse Toss
         </h1>
       </Link>
       {email ? (
         <div className="flex items-center space-x-4">
-          <Link
-            href="/dashboard"
-            className="border-r border-gray-300 pr-4 flex space-x-2 hover:text-blue-400 transition"
-          >
-            <div>Dashboard</div>
-          </Link>
+          {/*<Link*/}
+          {/*  href="/dashboard"*/}
+          {/*  className="border-r border-gray-300 pr-4 flex space-x-2 hover:text-blue-400 transition"*/}
+          {/*>*/}
+          {/*  <div>Dashboard</div>*/}
+          {/*</Link>*/}
           <Link
             href="/buy-credits"
             className="border-r border-gray-300 pr-4 flex space-x-2 hover:text-blue-400 transition"
