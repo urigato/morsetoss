@@ -126,36 +126,36 @@ const Home: NextPage = () => {
   return (
     <div className="flex max-w-6xl mx-auto flex-col items-center justify-center py-2 min-h-screen">
       <Head>
-        <title>RoomGPT</title>
+        <title>Morse Toss</title>
       </Head>
       <Header
         photo={session?.user?.image || undefined}
         email={session?.user?.email || undefined}
       />
       <main className="flex flex-1 w-full flex-col items-center justify-center text-center px-4 mt-4 sm:mb-0 mb-8">
-        {status === "authenticated" ? (
-          <Link
-            href="/buy-credits"
-            className="border border-gray-700 rounded-2xl py-2 px-4 text-gray-400 text-sm my-6 duration-300 ease-in-out hover:text-gray-300 hover:scale-105 transition"
-          >
-            Pricing is now available.{" "}
-            <span className="font-semibold text-gray-200">Click here</span> to
-            buy credits!
-          </Link>
-        ) : (
-          <a
-            href="https://twitter.com/nutlope/status/1635674124738523139?cxt=HHwWhsCz1ei8irMtAAAA"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-gray-700 rounded-2xl py-2 px-4 text-gray-400 text-sm my-6 duration-300 ease-in-out hover:text-gray-300 transition"
-          >
-            Over{" "}
-            <span className="font-semibold text-gray-200">1 million users</span>{" "}
-            have used roomGPT so far
-          </a>
-        )}
+        {/*{status === "authenticated" ? (*/}
+        {/*  <Link*/}
+        {/*    href="/buy-credits"*/}
+        {/*    className="border border-gray-700 rounded-2xl py-2 px-4 text-gray-400 text-sm my-6 duration-300 ease-in-out hover:text-gray-300 hover:scale-105 transition"*/}
+        {/*  >*/}
+        {/*    Pricing is now available.{" "}*/}
+        {/*    <span className="font-semibold text-gray-200">Click here</span> to*/}
+        {/*    buy credits!*/}
+        {/*  </Link>*/}
+        {/*) : (*/}
+        {/*  <a*/}
+        {/*    href="https://twitter.com/nutlope/status/1635674124738523139?cxt=HHwWhsCz1ei8irMtAAAA"*/}
+        {/*    target="_blank"*/}
+        {/*    rel="noopener noreferrer"*/}
+        {/*    className="border border-gray-700 rounded-2xl py-2 px-4 text-gray-400 text-sm my-6 duration-300 ease-in-out hover:text-gray-300 transition"*/}
+        {/*  >*/}
+        {/*    Over{" "}*/}
+        {/*    <span className="font-semibold text-gray-200">1 million users</span>{" "}*/}
+        {/*    have used roomGPT so far*/}
+        {/*  </a>*/}
+        {/*)}*/}
         <h1 className="mx-auto max-w-4xl font-display text-4xl font-bold tracking-normal text-slate-100 sm:text-6xl mb-5">
-          Generate your <span className="text-blue-600">dream</span> room
+          Write your <span className="text-blue-600">email</span>
         </h1>
         {status === "authenticated" && data && !restoredImage && (
           <p className="text-gray-400">
@@ -277,12 +277,14 @@ const Home: NextPage = () => {
                 !originalPhoto && (
                   <div className="h-[250px] flex flex-col items-center space-y-6 max-w-[670px] -mt-8">
                     <div className="max-w-xl text-gray-300">
-                      Sign in below with Google to create a free account and
-                      redesign your room today. You will get 3 generations for
-                      free.
+                      {/*Sign in below with Google to create a free account and*/}
+                      {/*redesign your room today. You will get 3 generations for*/}
+                      {/*free.*/}
+                      지금 Google로 로그인하고 무료계정을 만들어 email을 작성하세요.
+                      {/*3회의 제너레이션을 무료로 받을 수 있습니다.*/}
                     </div>
                     <button
-                      onClick={() => signIn('google')}
+                      onClick={() => signIn()}
                       className="bg-gray-200 text-black font-semibold py-3 px-6 rounded-2xl flex items-center space-x-2"
                     >
                       <Image
