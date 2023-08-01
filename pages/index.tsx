@@ -6,15 +6,25 @@ import Footer from "../components/Footer";
 import Header from "../components/Header";
 import SquigglyLines from "../components/SquigglyLines";
 import { Testimonials } from "../components/Testimonials";
+import useSWR from "swr";
+import {useSession} from "next-auth/react";
 
 const Home: NextPage = () => {
+  const fetcher = (url: string) => fetch(url).then((res) => res.json());
+  const { data, mutate } = useSWR("/api/remaining", fetcher);
+  const { data: session, status } = useSession();
+
   return (
     <div className="flex max-w-6xl mx-auto flex-col items-center justify-center py-2 min-h-screen">
       <Head>
         <title>Morse Toss</title>
       </Head>
 
-      <Header />
+      <Header
+          photo={session?.user?.image || undefined}
+          email={session?.user?.email || undefined}
+          credits={data?.remainingGenerations || 0}
+      />
       <main className="flex flex-1 w-full flex-col items-center justify-center text-center px-4 sm:mt-20 mt-20 mb-32 background-gradient">
         {/*<a*/}
         {/*  href="https://vercel.fyi/roomGPT"*/}

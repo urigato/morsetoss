@@ -4,12 +4,14 @@ import Link from "next/link";
 export default function Header({
   photo,
   email,
+  credits,
 }: {
   photo?: string;
   email?: string;
+  credits?: number;
 }) {
   return (
-    <header className="flex flex-col xs:flex-row justify-between items-center w-full mt-3 border-b pb-7 sm:px-4 px-2 border-gray-500 gap-2">
+    <header className="flex flex-col xs:flex-row justify-between items-center w-full mt-3 border-b pb-5 sm:px-4 px-2 border-gray-500 gap-2">
       <Link href="/" className="flex space-x-2">
         {/*<Image*/}
         {/*  alt="header text"*/}
@@ -31,15 +33,15 @@ export default function Header({
           {/*  <div>Dashboard</div>*/}
           {/*</Link>*/}
 
-          {/*<Link*/}
-          {/*  href="/buy-credits"*/}
-          {/*  className="border-r border-gray-300 pr-4 flex space-x-2 hover:text-blue-400 transition"*/}
-          {/*>*/}
-          {/*  <div>Buy Credits</div>*/}
-          {/*  <div className="text-blue-500 bg-blue-200 rounded-full px-2 text-xs flex justify-center items-center font-bold">*/}
-          {/*    New*/}
-          {/*  </div>*/}
-          {/*</Link>*/}
+          <Link
+            href="/buy-credits"
+            className="border-r border-gray-300 pr-4 flex space-x-2 hover:text-blue-400 transition"
+          >
+            <div>{credits} Credits</div>
+            {/*<div className="text-blue-500 bg-blue-200 rounded-full px-2 text-xs flex justify-center items-center font-bold">*/}
+            {/*  New*/}
+            {/*</div>*/}
+          </Link>
           {photo ? (
             <Image
               alt="Profile picture"

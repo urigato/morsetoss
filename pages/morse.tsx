@@ -131,6 +131,7 @@ const Home: NextPage = () => {
       <Header
         photo={session?.user?.image || undefined}
         email={session?.user?.email || undefined}
+        credits={data?.remainingGenerations || 0}
       />
       <main className="flex flex-1 w-full flex-col items-center justify-center text-center px-4 mt-4 sm:mb-0 mb-8">
         {/*{status === "authenticated" ? (*/}
