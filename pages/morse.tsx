@@ -31,6 +31,17 @@ const uploader = Uploader({
 });
 
 const Home: NextPage = () => {
+  const [myCompanyInput, setMyCompanyInput] = useState("");
+  const [myNameInput, setMyNameInput] = useState("");
+  const [reCompanyInput, setReCompanyInput] = useState("");
+  const [reNameInput, setReNameInput] = useState("");
+  const [emailBodyInput, setEmailBodyInput] = useState("");
+  // const [purposeInput, setPurposeInput] = useState("");
+  // const [questionInput, setQuestionInput] = useState("");
+  const [introInput, setIntroInput] = useState(true);
+  const [result, setResult] = useState();
+  const [isDisable, setIsDisable] = useState(false);
+
   const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
   const [restoredImage, setRestoredImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -72,21 +83,57 @@ const Home: NextPage = () => {
     },
   };
 
-  const UploadDropZone = () => (
-    <UploadDropzone
-      uploader={uploader}
-      options={options}
-      onUpdate={(file) => {
-        if (file.length !== 0) {
-          setPhotoName(file[0].originalFile.originalFileName);
-          setOriginalPhoto(file[0].fileUrl.replace("raw", "thumbnail"));
-          generatePhoto(file[0].fileUrl.replace("raw", "thumbnail"));
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement> | any ) {
+    event.preventDefault();
+    setIsDisable(true);
+    try {
+      const response = await fetch("/api/generate3", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          myCompanyText: myCompanyInput,
+          myNameText: myNameInput,
+          reCompanyText: reCompanyInput,
+          reNameText: reNameInput,
+          emailBodyText: emailBodyInput,
+          introText: introInput,
+          // purposeText: purposeInput,
+          // questionText: questionInput
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status !== 200) {
+        if (response.status === 429 || response.status === 403 || response.status === 500 || response.status === 502 || response.status === 503 || response.status === 504) {
+          throw new Error(
+              `${response.status}: 사용량이 많습니다. 잠시후 다시 시도해주세요.`
+          );
+        } else {
+          throw (
+              data.error ||
+              new Error(`Request failed with status ${response.status}`)
+          );
         }
-      }}
-      width="670px"
-      height="250px"
-    />
-  );
+      }
+      console.log(data.result);
+      setResult(data.result);
+      // setMyCompanyInput("");
+      // setMyNameInput("");
+      // setReCompanyInput("");
+      // setReNameInput("");
+      // setPurposeInput("");
+      // setQuestionInput("");
+    } catch (error : any) {
+      // Consider implementing your own error handling logic here
+      console.error(error);
+      alert(error.message);
+    }
+    setIsDisable(false);
+  }
 
   async function generatePhoto(fileUrl: string) {
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -133,7 +180,7 @@ const Home: NextPage = () => {
         email={session?.user?.email || undefined}
         credits={data?.remainingGenerations || 0}
       />
-      <main className="flex flex-1 w-full flex-col items-center justify-center text-center px-4 mt-4 sm:mb-0 mb-8">
+      <main className="flex flex-1 w-full flex-col items-center justify-center text-center px-4 mt-10 sm:mb-0 mb-8">
         {/*{status === "authenticated" ? (*/}
         {/*  <Link*/}
         {/*    href="/buy-credits"*/}
@@ -180,6 +227,8 @@ const Home: NextPage = () => {
             )}
           </p>
         )}
+
+
         <ResizablePanel>
           <AnimatePresence mode="wait">
             <motion.div className="flex justify-between items-center w-full flex-col mt-4">
@@ -220,60 +269,138 @@ const Home: NextPage = () => {
                   />
                 </div>
               ) : status === "authenticated" && !originalPhoto ? (
-                <>
-                  <div className="space-y-4 w-full max-w-sm">
-                    <div className="flex mt-3 items-center space-x-3">
-                      <Image
-                        src="/number-1-white.svg"
-                        width={30}
-                        height={30}
-                        alt="1 icon"
-                      />
-                      <p className="text-left font-medium">
-                        Choose your room theme.
-                      </p>
+                <div className="max-w-xl w-full">
+                  <form className="" action="#" method="POST">
+                    <div className=" grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-6 w-full">
+                      <div className="sm:col-span-6">
+                        <div className="flex items-center space-x-3">
+                          {/*<Image*/}
+                          {/*  src="/number-1-white.svg"*/}
+                          {/*  width={30}*/}
+                          {/*  height={30}*/}
+                          {/*  alt="1 icon"*/}
+                          {/*/>*/}
+                          <label htmlFor="myName" className="block text-sm font-bold leading-6">
+                            발신자 정보 입력
+                          </label>
+                        </div>
+                      </div>
+                      <div className="sm:col-span-3">
+                        <div className="mt-2">
+                          <div className="flex rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600
+                                  focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-md">
+                            <label className="flex select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='myName'>이름:</label>
+                            <input
+                                type="text"
+                                name="myName"
+                                id="myName"
+                                autoComplete="myName"
+                                className="block flex-1 border-0 bg-transparent m-0.5 pl-1 text-gray-100 h-8
+                                          placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-5"
+                                placeholder=""
+                                required
+                                value={myNameInput}
+                                onChange={(e) => setMyNameInput(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="sm:col-span-3">
+                        <div className="mt-2">
+                          <div className="flex rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-md">
+                            <label className="flex select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='myCompany'>소속:</label>
+                            <input
+                                type="text"
+                                name="myCompany"
+                                id="myCompany"
+                                autoComplete="myCompany"
+                                className="block flex-1 border-0 bg-transparent m-0.5 pl-1 text-gray-100 h-8
+                                          placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-5"
+                                placeholder=""
+                                value={myCompanyInput}
+                                onChange={(e) => setMyCompanyInput(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="sm:col-span-6">
+                        <div className="flex items-center mt-8">
+                          <label htmlFor="reName" className="block text-sm font-bold leading-6">
+                            수신자 정보 입력
+                          </label>
+                        </div>
+                      </div>
+                      <div className="sm:col-span-3">
+                        <div className="mt-2">
+                          <div className="flex rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-md">
+                            <label className="flex select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='reName'>이름:</label>
+                            <input
+                                type="text"
+                                name="reName"
+                                id="reName"
+                                autoComplete="reName"
+                                className="block flex-1 border-0 bg-transparent m-0.5 pl-1 text-gray-100 h-8
+                                          placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-5"
+                                placeholder=""
+                                required
+                                value={reNameInput}
+                                onChange={(e) => setReNameInput(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="sm:col-span-3">
+                        <div className="mt-2">
+                          <div className="flex rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-md">
+                            <label className="flex select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='reCompany'>소속:</label>
+                            <input
+                                type="text"
+                                name="reCompany"
+                                id="reCompany"
+                                autoComplete="reCompany"
+                                className="block flex-1 border-0 bg-transparent m-0.5 pl-1 text-gray-100 h-8
+                                          placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-5"
+                                placeholder=""
+                                value={reCompanyInput}
+                                onChange={(e) => setReCompanyInput(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                        <div className="sm:col-span-6">
+                            <div className="flex items-center mt-8">
+                                <label htmlFor="emailBody" className="block text-sm font-bold leading-6">
+                                내용 입력
+                                </label>
+                            </div>
+                          <div className="mt-2">
+                            <textarea
+                                id="emailBody"
+                                name="emailBody"
+                                rows={6}
+                                placeholder="목적이나 질문을 작성하세요."
+                                className="block w-full border-0 py-1.5 text-sm rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600
+                                 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-mdsm:leading-6"
+                                defaultValue={''}
+                                value={emailBodyInput}
+                                onChange={(e) => setEmailBodyInput(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
                     </div>
-                    <DropDown
-                      theme={theme}
-                      // @ts-ignore
-                      setTheme={(newTheme) => setTheme(newTheme)}
-                      themes={themes}
-                    />
-                  </div>
-                  <div className="space-y-4 w-full max-w-sm">
-                    <div className="flex mt-10 items-center space-x-3">
-                      <Image
-                        src="/number-2-white.svg"
-                        width={30}
-                        height={30}
-                        alt="1 icon"
-                      />
-                      <p className="text-left font-medium">
-                        Choose your room type.
-                      </p>
-                    </div>
-                    <DropDown
-                      theme={room}
-                      // @ts-ignore
-                      setTheme={(newRoom) => setRoom(newRoom)}
-                      themes={rooms}
-                    />
-                  </div>
-                  <div className="mt-4 w-full max-w-sm">
-                    <div className="flex mt-6 w-96 items-center space-x-3">
-                      <Image
-                        src="/number-3-white.svg"
-                        width={30}
-                        height={30}
-                        alt="1 icon"
-                      />
-                      <p className="text-left font-medium">
-                        Upload a picture of your room.
-                      </p>
-                    </div>
-                  </div>
-                  <UploadDropZone />
-                </>
+
+
+
+
+
+                  </form>
+                </div>
+
+
+
+
               ) : (
                 !originalPhoto && (
                   <div className="h-[250px] flex flex-col items-center space-y-6 max-w-[670px] -mt-8">
@@ -359,7 +486,7 @@ const Home: NextPage = () => {
                 </div>
               )}
               <div className="flex space-x-2 justify-center">
-                {originalPhoto && !loading && !error && (
+                {!loading && !error && (
                   <button
                     onClick={() => {
                       setOriginalPhoto(null);

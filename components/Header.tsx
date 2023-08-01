@@ -46,7 +46,7 @@ export default function Header({
             <Image
               alt="Profile picture"
               src={photo}
-              className="w-10 rounded-full"
+              className="w-9 rounded-full border border-gray-400"
               width={32}
               height={28}
             />
