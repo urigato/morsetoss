@@ -40,53 +40,20 @@ const Home: NextPage = () => {
   // const [questionInput, setQuestionInput] = useState("");
   const [introInput, setIntroInput] = useState(true);
   const [result, setResult] = useState();
-  const [isDisable, setIsDisable] = useState(false);
+  const [result_lo, setResult_lo] = useState();
 
-  const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
-  const [restoredImage, setRestoredImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [restoredLoaded, setRestoredLoaded] = useState<boolean>(false);
-  const [sideBySide, setSideBySide] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [photoName, setPhotoName] = useState<string | null>(null);
-  const [theme, setTheme] = useState<themeType>("Modern");
-  const [room, setRoom] = useState<roomType>("Living Room");
 
   const fetcher = (url: string) => fetch(url).then((res) => res.json());
   const { data, mutate } = useSWR("/api/remaining", fetcher);
   const { data: session, status } = useSession();
 
-  const options = {
-    maxFileCount: 1,
-    mimeTypes: ["image/jpeg", "image/png", "image/jpg"],
-    editor: { images: { crop: false } },
-    tags: [data?.remainingGenerations > 3 ? "paid" : "free"],
-    styles: {
-      colors: {
-        primary: "#2563EB", // Primary buttons & links
-        error: "#d23f4d", // Error messages
-        shade100: "#fff", // Standard text
-        shade200: "#fffe", // Secondary button text
-        shade300: "#fffd", // Secondary button text (hover)
-        shade400: "#fffc", // Welcome text
-        shade500: "#fff9", // Modal close button
-        shade600: "#fff7", // Border
-        shade700: "#fff2", // Progress indicator background
-        shade800: "#fff1", // File item background
-        shade900: "#ffff", // Various (draggable crop buttons, etc.)
-      },
-    },
-    onValidate: async (file: File): Promise<undefined | string> => {
-      return data.remainingGenerations === 0
-        ? `No more credits left. Buy more above.`
-        : undefined;
-    },
-  };
-
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement> | any ) {
     event.preventDefault();
-    setIsDisable(true);
+    setLoading(true);
     try {
       const response = await fetch("/api/generate3", {
         method: "POST",
@@ -132,34 +99,7 @@ const Home: NextPage = () => {
       console.error(error);
       alert(error.message);
     }
-    setIsDisable(false);
-  }
-
-  async function generatePhoto(fileUrl: string) {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    setLoading(true);
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ imageUrl: fileUrl, theme, room }),
-    });
-
-    let response = (await res.json()) as GenerateResponseData;
-    if (res.status !== 200) {
-      setError(response as any);
-    } else {
-      mutate();
-      const rooms =
-        (JSON.parse(localStorage.getItem("rooms") || "[]") as string[]) || [];
-      rooms.push(response.id);
-      localStorage.setItem("rooms", JSON.stringify(rooms));
-      setRestoredImage(response.generated);
-    }
-    setTimeout(() => {
-      setLoading(false);
-    }, 1300);
+    setLoading(false);
   }
 
   const router = useRouter();
@@ -205,7 +145,7 @@ const Home: NextPage = () => {
         <h1 className="mx-auto max-w-4xl font-display text-4xl font-bold tracking-normal text-slate-100 sm:text-6xl mb-5">
           Write your <span className="text-blue-600">email</span>
         </h1>
-        {status === "authenticated" && data && !restoredImage && (
+        {status === "authenticated" && data && !result && (
           <p className="text-gray-400">
             You have{" "}
             <span className="font-semibold text-gray-300">
@@ -232,29 +172,12 @@ const Home: NextPage = () => {
         <ResizablePanel>
           <AnimatePresence mode="wait">
             <motion.div className="flex justify-between items-center w-full flex-col mt-4">
-              {restoredImage && (
-                <div>
-                  Here's your remodeled <b>{room.toLowerCase()}</b> in the{" "}
-                  <b>{theme.toLowerCase()}</b> theme!{" "}
-                </div>
-              )}
-              <div
-                className={`${
-                  restoredLoaded ? "visible mt-6 -ml-8" : "invisible"
-                }`}
-              >
-                <Toggle
-                  className={`${restoredLoaded ? "visible mb-6" : "invisible"}`}
-                  sideBySide={sideBySide}
-                  setSideBySide={(newVal) => setSideBySide(newVal)}
-                />
-              </div>
-              {restoredLoaded && sideBySide && (
-                <CompareSlider
-                  original={originalPhoto!}
-                  restored={restoredImage!}
-                />
-              )}
+
+              <div className={`${result ?
+                  "lg:max-w-5xl":
+                  "max-w-md"}`
+                  + ` w-full flex flex-wrap md:flex-row flex-col justify-items-center lg:gap-10 md:gap-3`
+              }>
               {status === "loading" ? (
                 <div className="max-w-[670px] h-[250px] flex justify-center items-center">
                   <Rings
@@ -268,10 +191,10 @@ const Home: NextPage = () => {
                     ariaLabel="rings-loading"
                   />
                 </div>
-              ) : status === "authenticated" && !originalPhoto ? (
-                <div className="max-w-xl w-full">
-                  <form className="" action="#" method="POST">
-                    <div className=" grid grid-cols-1 gap-x-3 gap-y-1 sm:grid-cols-6 w-full">
+              ) : status === "authenticated" ? (
+                <div className="flex-1">
+                  <form onSubmit={onSubmit}>
+                    <div className=" grid grid-cols-1 gap-x-3 sm:grid-cols-6 w-full">
                       <div className="sm:col-span-6">
                         <div className="flex items-center space-x-3">
                           {/*<Image*/}
@@ -287,15 +210,15 @@ const Home: NextPage = () => {
                       </div>
                       <div className="sm:col-span-3">
                         <div className="mt-2">
-                          <div className="flex rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600
-                                  focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-md">
-                            <label className="flex select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='myName'>이름:</label>
+                          <div className="flex rounded-md bg-gray-800 shadow-sm overflow-hidden ring-1 ring-gray-600
+                                  focus-within:ring-2 focus-within:ring-indigo-500">
+                            <label className="flex flex-none select-none items-center pl-2 text-gray-500 sm:text-sm" htmlFor='myName'>이름:</label>
                             <input
                                 type="text"
                                 name="myName"
                                 id="myName"
                                 autoComplete="myName"
-                                className="block flex-1 border-0 bg-transparent m-0.5 pl-1 text-gray-100 h-8
+                                className="block flex-1 border-0 bg-transparent pl-1 text-gray-100 h-8
                                           placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-5"
                                 placeholder=""
                                 required
@@ -307,14 +230,15 @@ const Home: NextPage = () => {
                       </div>
                       <div className="sm:col-span-3">
                         <div className="mt-2">
-                          <div className="flex rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-md">
-                            <label className="flex select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='myCompany'>소속:</label>
+                          <div className="flex rounded-md bg-gray-800 shadow-sm overflow-hidden ring-1 ring-gray-600
+                           focus-within:ring-2 focus-within:ring-indigo-500">
+                            <label className="flex flex-none select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='myCompany'>소속:</label>
                             <input
                                 type="text"
                                 name="myCompany"
                                 id="myCompany"
                                 autoComplete="myCompany"
-                                className="block flex-1 border-0 bg-transparent m-0.5 pl-1 text-gray-100 h-8
+                                className="block flex-1 border-0 bg-transparent pl-1 text-gray-100 h-8
                                           placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-5"
                                 placeholder=""
                                 value={myCompanyInput}
@@ -332,14 +256,15 @@ const Home: NextPage = () => {
                       </div>
                       <div className="sm:col-span-3">
                         <div className="mt-2">
-                          <div className="flex rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-md">
-                            <label className="flex select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='reName'>이름:</label>
+                          <div className="flex rounded-md bg-gray-800 shadow-sm overflow-hidden ring-1 ring-gray-600
+                           focus-within:ring-2 focus-within:ring-indigo-500">
+                            <label className="flex flex-none select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='reName'>이름:</label>
                             <input
                                 type="text"
                                 name="reName"
                                 id="reName"
                                 autoComplete="reName"
-                                className="block flex-1 border-0 bg-transparent m-0.5 pl-1 text-gray-100 h-8
+                                className="block flex-1 border-0 bg-transparent pl-1 text-gray-100 h-8
                                           placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-5"
                                 placeholder=""
                                 required
@@ -351,14 +276,15 @@ const Home: NextPage = () => {
                       </div>
                       <div className="sm:col-span-3">
                         <div className="mt-2">
-                          <div className="flex rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-md">
-                            <label className="flex select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='reCompany'>소속:</label>
+                          <div className="flex rounded-md bg-gray-800 shadow-sm overflow-hidden ring-1 ring-gray-600
+                           focus-within:ring-2 focus-within:ring-indigo-500">
+                            <label className="flex flex-none select-none items-center pl-3 text-gray-500 sm:text-sm" htmlFor='reCompany'>소속:</label>
                             <input
                                 type="text"
                                 name="reCompany"
                                 id="reCompany"
                                 autoComplete="reCompany"
-                                className="block flex-1 border-0 bg-transparent m-0.5 pl-1 text-gray-100 h-8
+                                className="block flex-1 border-0 bg-transparent pl-1 text-gray-100 h-8
                                           placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-5"
                                 placeholder=""
                                 value={reCompanyInput}
@@ -368,110 +294,131 @@ const Home: NextPage = () => {
                         </div>
                       </div>
 
-                        <div className="sm:col-span-6">
-                            <div className="flex items-center mt-8">
-                                <label htmlFor="emailBody" className="block text-sm font-bold leading-6">
-                                내용 입력
-                                </label>
-                            </div>
-                          <div className="mt-2">
-                            <textarea
-                                id="emailBody"
-                                name="emailBody"
-                                rows={6}
-                                placeholder="목적이나 질문을 작성하세요."
-                                className="block w-full border-0 py-1.5 text-sm rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600
-                                 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-mdsm:leading-6"
-                                defaultValue={''}
-                                value={emailBodyInput}
-                                onChange={(e) => setEmailBodyInput(e.target.value)}
+                      <div className="sm:col-span-6">
+                          <div className="flex items-center mt-8">
+                              <label htmlFor="emailBody" className="block text-sm font-bold leading-6">
+                              내용 입력
+                              </label>
+                          </div>
+                        <div className="mt-2">
+                          <textarea
+                              id="emailBody"
+                              name="emailBody"
+                              rows={6}
+                              placeholder="목적이나 질문을 작성하세요."
+                              className="block w-full border-0 py-1.5 text-sm rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600
+                               focus-within:ring-2 focus-within:ring-indigo-500 sm:leading-6"
+                              value={emailBodyInput}
+                              onChange={(e) => setEmailBodyInput(e.target.value)}
+                          />
+                        </div>
+                        <div className="relative flex gap-x-2 justify-center mt-6">
+                          <div className="flex h-6 items-center">
+                            <input
+                                id="intro"
+                                name="intro"
+                                type="checkbox"
+                                checked={introInput}
+                                className="h-4 w-4 rounded ring-gray-600 bg-gray-800 text-indigo-600
+                                 focus:ring-indigo-600 focus:ring-offset-2 focus:ring-2 focus:ring-offset-gray-800"
+                                onChange={(e) => setIntroInput(e.target.checked)}
                             />
                           </div>
+                          <div className="text-sm leading-6">
+                            <label htmlFor="intro" className="font-medium text-gray-300">
+                              첫 소개 인사말 포함
+                            </label>
+                          </div>
                         </div>
-
+                      </div>
                     </div>
 
-
-
-
+                    <div className="flex justify-center mt-4 mb-10">
+                      <button
+                        disabled={loading}
+                        // onClick={() => {
+                        //   setRestoredLoaded(false);
+                        //   setError(null);
+                        // }}
+                        type="submit"
+                        className="bg-blue-500 rounded-md text-white text-md font-medium px-10 py-2 hover:bg-blue-500/80 transition"
+                      >
+                        {loading ? (
+                            <span className="pt-4">
+                              <LoadingDots color="white" style="large" />
+                            </span>
+                          ) : (
+                            <span>영문 이메일 작성</span>
+                          )}
+                      </button>
+                    </div>
 
                   </form>
                 </div>
 
-
-
-
               ) : (
-                !originalPhoto && (
-                  <div className="h-[250px] flex flex-col items-center space-y-6 max-w-[670px] -mt-8">
-                    <div className="max-w-xl text-gray-300">
-                      {/*Sign in below with Google to create a free account and*/}
-                      {/*redesign your room today. You will get 3 generations for*/}
-                      {/*free.*/}
-                      지금 Google로 로그인하고 무료계정을 만들어 email을 작성하세요.
-                      {/*3회의 제너레이션을 무료로 받을 수 있습니다.*/}
-                    </div>
-                    <button
-                      onClick={() => signIn()}
-                      className="bg-gray-200 text-black font-semibold py-3 px-6 rounded-2xl flex items-center space-x-2"
-                    >
-                      <Image
-                        src="/google.png"
-                        width={20}
-                        height={20}
-                        alt="google's logo"
-                      />
-                      <span>Sign in with Google</span>
-                    </button>
+
+                <div className="h-[250px] flex flex-col items-center space-y-6 max-w-[670px] -mt-8">
+                  <div className="max-w-xl text-gray-300">
+                    {/*Sign in below with Google to create a free account and*/}
+                    {/*redesign your room today. You will get 3 generations for*/}
+                    {/*free.*/}
+                    지금 Google로 로그인하고 무료계정을 만들어 email을 작성하세요.
+                    {/*3회의 제너레이션을 무료로 받을 수 있습니다.*/}
                   </div>
-                )
-              )}
-              {originalPhoto && !restoredImage && (
-                <Image
-                  alt="original photo"
-                  src={originalPhoto}
-                  className="rounded-2xl h-96"
-                  width={475}
-                  height={475}
-                />
-              )}
-              {restoredImage && originalPhoto && !sideBySide && (
-                <div className="flex sm:space-x-4 sm:flex-row flex-col">
-                  <div>
-                    <h2 className="mb-1 font-medium text-lg">Original Room</h2>
+                  <button
+                    onClick={() => signIn('google')}
+                    className="bg-gray-200 text-black font-semibold py-3 px-6 rounded-2xl flex items-center space-x-2"
+                  >
                     <Image
-                      alt="original photo"
-                      src={originalPhoto}
-                      className="rounded-2xl relative w-full h-96"
-                      width={475}
-                      height={475}
+                      src="/google.png"
+                      width={20}
+                      height={20}
+                      alt="google's logo"
+                    />
+                    <span>Sign in with Google</span>
+                  </button>
+                </div>
+
+              )}
+
+              {result && (
+                <div className="flex-1">
+                  <div className="flex items-center">
+                    <label className="block text-sm font-bold leading-6">
+                      영문 이메일 작성 결과
+                    </label>
+                  </div>
+                  <div className="mt-2">
+                    <textarea
+                        id="result"
+                        name="result"
+                        readOnly
+                        rows={20}
+                        // className={styles.result}
+                        value={result}
+                        className="relative w-full block border-0 py-1.5 text-sm rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600
+                               focus-within:ring-1 focus-within:ring-inset focus-within:ring-gray-600 sm:leading-6"
                     />
                   </div>
-                  <div className="sm:mt-0 mt-8">
-                    <h2 className="mb-1 font-medium text-lg">Generated Room</h2>
-                    <a href={restoredImage} target="_blank" rel="noreferrer">
-                      <Image
-                        alt="restored photo"
-                        src={restoredImage}
-                        className="rounded-2xl relative sm:mt-0 mt-2 cursor-zoom-in w-full h-96"
-                        width={475}
-                        height={475}
-                        onLoadingComplete={() => setRestoredLoaded(true)}
-                      />
-                    </a>
-                  </div>
+                  {/*<div className="mt-8">*/}
+                  {/*  <h2 className="mb-1 font-medium text-lg">영문 결과 한글번역</h2>*/}
+                  {/*  <textarea*/}
+                  {/*      id="result_lo"*/}
+                  {/*      name="result_lo"*/}
+                  {/*      readOnly*/}
+                  {/*      rows={10}*/}
+                  {/*      // className={styles.result}*/}
+                  {/*      value={result_lo}*/}
+                  {/*      className="relative w-full block border-0 py-1.5 text-sm rounded-md bg-gray-800 shadow-sm ring-1 ring-inset ring-gray-600*/}
+                  {/*             focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500 sm:max-w-md sm:leading-6"*/}
+                  {/*  />*/}
+                  {/*</div>*/}
                 </div>
               )}
-              {loading && (
-                <button
-                  disabled
-                  className="bg-blue-500 rounded-full text-white font-medium px-4 pt-2 pb-3 mt-8 w-40"
-                >
-                  <span className="pt-4">
-                    <LoadingDots color="white" style="large" />
-                  </span>
-                </button>
-              )}
+
+              </div>
+
               {error && (
                 <div
                   className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mt-8 max-w-[575px]"
@@ -485,34 +432,7 @@ const Home: NextPage = () => {
                   </div>
                 </div>
               )}
-              <div className="flex space-x-2 justify-center">
-                {!loading && !error && (
-                  <button
-                    onClick={() => {
-                      setOriginalPhoto(null);
-                      setRestoredImage(null);
-                      setRestoredLoaded(false);
-                      setError(null);
-                    }}
-                    className="bg-blue-500 rounded-full text-white font-medium px-4 py-2 mt-8 hover:bg-blue-500/80 transition"
-                  >
-                    Generate New Room
-                  </button>
-                )}
-                {restoredLoaded && (
-                  <button
-                    onClick={() => {
-                      downloadPhoto(
-                        restoredImage!,
-                        appendNewToName(photoName!)
-                      );
-                    }}
-                    className="bg-white rounded-full text-black border font-medium px-4 py-2 mt-8 hover:bg-gray-100 transition"
-                  >
-                    Download Generated Room
-                  </button>
-                )}
-              </div>
+
             </motion.div>
           </AnimatePresence>
         </ResizablePanel>
